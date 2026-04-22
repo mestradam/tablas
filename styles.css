@@ -290,9 +290,9 @@ h3 {
 }
 
 .quiz-question {
-  font-size: 56px;
+  font-size: 42px;
   font-weight: 800;
-  margin-bottom: calc(var(--spacing) * 4);
+  margin-bottom: calc(var(--spacing) * 3);
   color: var(--text-primary);
 }
 
@@ -308,8 +308,8 @@ h3 {
   background: var(--surface-elevated);
   border: 2px solid var(--surface-light);
   border-radius: var(--radius);
-  padding: calc(var(--spacing) * 2);
-  font-size: 32px;
+  padding: calc(var(--spacing) * 1.5);
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-primary);
   cursor: pointer;
@@ -351,7 +351,7 @@ h3 {
 }
 
 .desafio-timer {
-  font-size: 72px;
+  font-size: 52px;
   font-weight: 800;
   color: var(--warning);
   margin-bottom: calc(var(--spacing) * 2);
@@ -360,7 +360,7 @@ h3 {
 }
 
 .desafio-score {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   margin-bottom: calc(var(--spacing) * 2);
   text-align: center;
