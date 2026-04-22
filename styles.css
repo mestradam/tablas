@@ -392,6 +392,34 @@ h3 {
   margin-bottom: var(--spacing);
 }
 
+.stats-semana {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  margin-bottom: calc(var(--spacing) * 3);
+}
+
+.stat-card {
+  background: var(--surface-elevated);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 1.5);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.stat-card .stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
 .btn {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   border: none;
