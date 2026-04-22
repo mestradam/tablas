@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0F0F1A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Tablas</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🧮</span>
+        <span class="logo-text">Tablas</span>
+      </div>
+      <div class="header-usuario" id="headerUsuario" onclick="mostrarSelectorUsuario()">
+        <span class="header-user-icon">👧</span>
+        <span id="nombreUsuario">Alicia</span>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+    </main>
+
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="practicar">
+        <span class="tab-icon">✏️</span>
+        <span class="tab-label">Practicar</span>
+      </button>
+      <button class="tab-btn" data-tab="desafios">
+        <span class="tab-icon">⏱️</span>
+        <span class="tab-label">Desafío</span>
+      </button>
+      <button class="tab-btn" data-tab="progreso">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Progreso</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

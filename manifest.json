@@ -1,0 +1,18 @@
+{
+  "name": "MathKids - Aprende las Tablas de Multiplicar",
+  "short_name": "MathKids",
+  "description": "Aprende las tablas de multiplicar con Luna y su nave espacial",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#1A1A2E",
+  "theme_color": "#6C63FF",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><circle cx='256' cy='256' r='240' fill='%236C63FF'/><text x='256' y='320' font-size='300' text-anchor='middle' fill='white'>🌟</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
