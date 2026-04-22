@@ -147,8 +147,6 @@ function renderizarPracticar() {
       <div id="quizContainer">
         <div class="empty-state">
           <i class="ph-pencil-simple" style="font-size: 48px;"></i>
-          <p>Selecciona una tabla y comienza a practicar</p>
-          <button class="btn" id="startPracticeQuiz" style="margin-top: 16px;">¡Comenzar!</button>
         </div>
       </div>
     </div>
@@ -177,19 +175,6 @@ function configurarEventosPracticar() {
     });
   });
   
-  const startBtn = document.getElementById('startPracticeQuiz');
-  if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      const tabla = state.cuestionario.tablaSeleccionada;
-      if (tabla === null || tabla === undefined) {
-        alert('Selecciona una tabla primero');
-      } else if (tabla === 0) {
-        iniciarPracticaMezcladas();
-      } else {
-        iniciarPractica(tabla);
-      }
-    });
-  }
 }
 
 function iniciarPractica(tabla) {
