@@ -398,60 +398,12 @@ function renderizarProgreso() {
   const usuario = getUsuarioActual();
   const tiempoPromedio = calcularTiempoPromedio(usuario);
   const escala = calcularEscala(tiempoPromedio);
-  const stats = calcularStatsSemana(usuario);
   return `
     <div class="screen active" id="progresoScreen">
       <h2><span class="section-icon">📊</span> Progreso</h2>
-      
-      <div class="stats-semana">
-        <div class="stat-card">
-          <span class="stat-value">${stats.tiempoSemana}</span>
-          <span class="stat-label">Tiempo esta semana</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">${stats.cuentasSemana}</span>
-          <span class="stat-label">Cuentas practicadas</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">${stats.diasPractico}</span>
-          <span class="stat-label">Días practicados</span>
-        </div>
-      </div>
-      
       <div class="mapa-colores">${renderizarMapaColores(escala, usuario)}</div>
     </div>
   `;
-}
-
-function calcularStatsSemana(usuario) {
-  const hoy = new Date();
-  let tiempoSemana = 0;
-  let cuentasSemana = 0;
-  let dias = new Set();
-  
-  for (let i = 0; i < 7; i++) {
-    const fecha = new Date(hoy);
-    fecha.setDate(fecha.getDate() - i);
-    const fechaStr = fecha.toISOString().split('T')[0];
-    const stat = usuario.statsDiarias.find(s => s.fecha === fechaStr);
-    if (stat) {
-      tiempoSemana += stat.tiempo || 0;
-      cuentasSemana += stat.cuentas || 0;
-      dias.add(fechaStr);
-    }
-  }
-  
-  const diasPractico = dias.size;
-  const tiempoEnMinutos = Math.round(tiempoSemana / 60);
-  const tiempoFormateado = tiempoEnMinutos < 60 
-    ? tiempoEnMinutos + 'min' 
-    : Math.floor(tiempoEnMinutos / 60) + 'h ' + (tiempoEnMinutos % 60) + 'min';
-  
-  return {
-    tiempoSemana: tiempoFormateado,
-    cuentasSemana: cuentasSemana,
-    diasPractico: diasPractico
-  };
 }
 
 function calcularTiempoPromedio(usuario) {
