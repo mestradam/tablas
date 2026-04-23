@@ -1,13 +1,17 @@
 const EJERCICIOS_POR_NIVEL = 10;
 
 const USUARIOS = ['Alicia', 'Lucía'];
+const ICONOS_USUARIO = {
+  mujer: '👧',
+  hombre: '👦'
+};
 
 let usuarioActual = 'Alicia';
 let state = {
   tabActual: 'practicar',
   usuarios: {
-    Alicia: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0 },
-    Lucía: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0 }
+    Alicia: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' },
+    Lucía: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' }
   },
   cuestionario: {
     preguntas: [],
@@ -81,7 +85,12 @@ function cambiarTab(tab) {
 
 function actualizarHeader() {
   const nombreEl = document.getElementById('nombreUsuario');
+  const iconoEl = document.getElementById('iconoUsuario');
   if (nombreEl) nombreEl.textContent = usuarioActual;
+  if (iconoEl) {
+    const genero = state.usuarios[usuarioActual]?.genero || 'mujer';
+    iconoEl.textContent = ICONOS_USUARIO[genero];
+  }
 }
 
 function renderizar() {
@@ -107,12 +116,30 @@ function mostrarSelectorUsuario() {
       <div class="modal-usuario">
         <h3>Cambiar usuario</h3>
         <div class="modal-opciones">
-          ${USUARIOS.map(u => `
-            <button class="modal-opcion-btn ${u === usuarioActual ? 'active' : ''}" data-usuario="${u}">
+          ${Object.entries(state.usuarios).map(([nombre, data]) => `
+            <button class="modal-opcion-btn ${nombre === usuarioActual ? 'active' : ''}" data-usuario="${nombre}">
               <i class="ph-fill ph-user"></i>
-              <span>${u}</span>
+              <span>${ICONOS_USUARIO[data.genero] || '👧'} ${nombre}</span>
             </button>
           `).join('')}
+        </div>
+        <button class="btn-nuevo-usuario" id="btnNuevoUsuario">
+          <span>➕</span> Crear nuevo usuario
+        </button>
+        <div class="modal-form-nuevo" id="modalFormNuevo" style="display: none;">
+          <input type="text" id="nombreNuevoUsuario" placeholder="Nombre del jugador" maxlength="20">
+          <div class="genero-opciones">
+            <button class="genero-btn selected" data-genero="mujer">
+              <span>👧</span> Niña
+            </button>
+            <button class="genero-btn" data-genero="hombre">
+              <span>👦</span> Niño
+            </button>
+          </div>
+          <div class="form-nuevo-botones">
+            <button class="btn btn-cancelar" onclick="document.getElementById('modalFormNuevo').style.display='none'">Cancelar</button>
+            <button class="btn" id="btnCrearUsuario">Crear</button>
+          </div>
         </div>
       </div>
     </div>
@@ -127,14 +154,56 @@ function mostrarSelectorUsuario() {
       cerrarSelectorUsuario();
     });
   });
+  
+  const btnNuevo = document.getElementById('btnNuevoUsuario');
+  const formNuevo = document.getElementById('modalFormNuevo');
+  if (btnNuevo) {
+    btnNuevo.addEventListener('click', () => {
+      formNuevo.style.display = formNuevo.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+  
+  document.querySelectorAll('.genero-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.genero-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
+  
+  const btnCrear = document.getElementById('btnCrearUsuario');
+  if (btnCrear) {
+    btnCrear.addEventListener('click', crearNuevoUsuario);
+  }
 }
 
 function cerrarSelectorUsuario() {
   document.querySelector('.modal-overlay')?.remove();
 }
 
+function crearNuevoUsuario() {
+  const nombreInput = document.getElementById('nombreNuevoUsuario');
+  const nombre = nombreInput?.value.trim();
+  if (!nombre) return;
+  
+  const generoBtn = document.querySelector('.genero-btn.selected');
+  const genero = generoBtn?.dataset.genero || 'mujer';
+  
+  state.usuarios[nombre] = {
+    tiemposRespuesta: {},
+    statsDiarias: [],
+    tiempoTotalPractica: 0,
+    genero: genero
+  };
+  
+  usuarioActual = nombre;
+  guardarEstado();
+  actualizarHeader();
+  cerrarSelectorUsuario();
+}
+
 window.mostrarSelectorUsuario = mostrarSelectorUsuario;
 window.cerrarSelectorUsuario = cerrarSelectorUsuario;
+window.crearNuevoUsuario = crearNuevoUsuario;
 
 function renderizarPracticar() {
   return `

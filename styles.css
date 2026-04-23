@@ -605,3 +605,104 @@ h3 {
   background: var(--primary);
   color: white;
 }
+
+.btn-nuevo-usuario {
+  width: 100%;
+  background: var(--surface);
+  border: 2px dashed var(--surface-light);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 1.5);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Outfit', sans-serif;
+  margin-top: calc(var(--spacing) * 2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing);
+}
+
+.btn-nuevo-usuario:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.modal-form-nuevo {
+  margin-top: calc(var(--spacing) * 2);
+}
+
+.modal-form-nuevo input {
+  width: 100%;
+  background: var(--surface);
+  border: 2px solid var(--surface-light);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 1.5);
+  font-size: 16px;
+  color: var(--text-primary);
+  font-family: 'Outfit', sans-serif;
+  margin-bottom: calc(var(--spacing) * 1.5);
+  outline: none;
+}
+
+.modal-form-nuevo input:focus {
+  border-color: var(--primary);
+}
+
+.modal-form-nuevo input::placeholder {
+  color: var(--text-muted);
+}
+
+.genero-opciones {
+  display: flex;
+  gap: var(--spacing);
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.genero-btn {
+  flex: 1;
+  background: var(--surface);
+  border: 2px solid var(--surface-light);
+  border-radius: var(--radius);
+  padding: calc(var(--spacing) * 1);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Outfit', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.genero-btn:hover {
+  border-color: var(--primary);
+}
+
+.genero-btn.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.form-nuevo-botones {
+  display: flex;
+  gap: var(--spacing);
+}
+
+.form-nuevo-botones .btn {
+  flex: 1;
+}
+
+.btn-cancelar {
+  background: var(--surface-light);
+  box-shadow: none;
+}
+
+.btn-cancelar:hover {
+  background: var(--surface);
+}
