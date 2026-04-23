@@ -18,11 +18,14 @@ let state = {
   },
   desafio: {
     activo: false,
+    finalizado: false,
     tiempoRestante: 60,
-    puntuacion: 0,
+    aciertos: 0,
+    errores: 0,
     racha: 0,
     pregunta: null,
-    intervalo: null
+    intervalo: null,
+    tiempoInicio: 0
   }
 };
 
@@ -272,10 +275,12 @@ function registrarTiempo(preg, tiempo) {
   const partes = preg.replace('×', 'x').split(/[x\s]+/).filter(p => p);
   const a = parseInt(partes[0]);
   const b = parseInt(partes[1]);
-  // Keep original order: first number is row, second is column
   const key = `${a}x${b}`;
   if (!usuario.tiemposRespuesta[key]) usuario.tiemposRespuesta[key] = [];
   usuario.tiemposRespuesta[key].push(tiempo);
+  if (usuario.tiemposRespuesta[key].length > 3) {
+    usuario.tiemposRespuesta[key] = usuario.tiemposRespuesta[key].slice(-3);
+  }
   guardarEstado();
 }
 
@@ -309,14 +314,18 @@ function renderizarResultados() {
 
 function renderizarDesafios() {
   const d = state.desafio;
-  if (d.activo) {
+  if (d.activo || d.finalizado) {
     return `
       <div class="screen active" id="desafiosScreen">
         <h2><i class="section-icon ph-timer"></i> Desafío</h2>
         <div class="desafio-timer" id="desafioTimer">${d.tiempoRestante}s</div>
-        <div class="desafio-score">Puntos: ${d.puntuacion}</div>
-        <div class="desafio-streak"><i class="ph-fill ph-fire"></i><span>Racha: ${d.racha}</span></div>
-        <div id="desafioQuiz">${renderizarDesafioQuiz()}</div>
+        <div class="desafio-score">
+          <span class="desafio-aciertos">✓ ${d.aciertos}</span>
+          <span class="desafio-errores">✗ ${d.errores}</span>
+        </div>
+        <div class="desafio-streak"><i class="ph-fill ph-fire"></i><span>${d.finalizado ? 'Racha final' : 'Racha'}: ${d.racha}</span></div>
+        <div id="desafioQuiz">${renderizarDesafioQuiz(d.finalizado)}</div>
+        ${d.finalizado ? `<button class="btn" onclick="iniciarDesafio()" style="margin-top: 24px;">¡Jugar otra vez!</button>` : ''}
       </div>
     `;
   }
@@ -326,7 +335,7 @@ function renderizarDesafios() {
       <div class="empty-state">
         <i class="ph-timer" style="font-size: 48px;"></i>
         <p>60 segundos para resolver cuántos puedas!</p>
-        <p style="margin-top: 8px; color: var(--text-secondary);">Mientras más rápido, más puntos.</p>
+        <p style="margin-top: 8px; color: var(--text-secondary);">Intenta resolver la mayor cantidad posible.</p>
         <button class="btn" id="startDesafio" style="margin-top: 16px;">¡Iniciar!</button>
       </div>
     </div>
@@ -343,24 +352,43 @@ function configurarEventosDesafios() {
 function iniciarDesafio() {
   state.desafio = {
     activo: true,
+    finalizado: false,
     tiempoRestante: 60,
-    puntuacion: 0,
+    aciertos: 0,
+    errores: 0,
     racha: 0,
     pregunta: generarPreguntaDesafio(),
+    tiempoInicio: Date.now(),
     intervalo: setInterval(() => {
       state.desafio.tiempoRestante--;
       document.getElementById('desafioTimer').textContent = state.desafio.tiempoRestante + 's';
       if (state.desafio.tiempoRestante <= 0) {
         clearInterval(state.desafio.intervalo);
-        const pts = state.desafio.puntuacion;
-        state.desafio = { activo: false, tiempoRestante: 60, puntuacion: 0, racha: 0, pregunta: null, intervalo: null };
+        state.desafio.activo = false;
+        state.desafio.finalizado = true;
+        state.desafio.intervalo = null;
         renderizar();
-        setTimeout(() => alert(`¡Tiempo! Puntos: ${pts}`), 100);
       }
-    }, 1000)
+    }, 1_000)
   };
   renderizar();
 }
+
+function reiniciarDesafio() {
+  state.desafio = {
+    activo: false,
+    finalizado: false,
+    tiempoRestante: 60,
+    aciertos: 0,
+    errores: 0,
+    racha: 0,
+    pregunta: null,
+    intervalo: null
+  };
+  renderizar();
+}
+
+window.reiniciarDesafio = reiniciarDesafio;
 
 function generarPreguntaDesafio() {
   const t = Math.floor(Math.random() * 12) + 1;
@@ -368,36 +396,41 @@ function generarPreguntaDesafio() {
   return { pregunta: `${t} × ${n}`, resultado: t * n, opciones: generarOpciones(t * n) };
 }
 
-function renderizarDesafioQuiz() {
+function renderizarDesafioQuiz(finalizado = false) {
   const q = state.desafio.pregunta;
   return `
     <div class="quiz-container">
       <div class="quiz-question">${q.pregunta} = ?</div>
-      <div class="quiz-options">${q.opciones.map(o => `<button class="quiz-option" data-op="${o}">${o}</button>`).join('')}</div>
+      <div class="quiz-options">${q.opciones.map(o => `<button class="quiz-option ${finalizado ? 'disabled' : ''}" data-op="${o}">${o}</button>`).join('')}</div>
     </div>
   `;
 }
 
 function responderDesafio(boton) {
-  const correcta = parseInt(boton.dataset.op) === state.desafio.pregunta.resultado;
+  const p = state.desafio.pregunta;
+  const correcta = parseInt(boton.dataset.op) === p.resultado;
+  const tiempo = (Date.now() - state.desafio.tiempoInicio) / 1_000;
+  registrarTiempo(p.pregunta, tiempo);
+
   if (correcta) {
-    state.desafio.puntuacion += 10 + (state.desafio.racha * 2);
+    state.desafio.aciertos++;
     state.desafio.racha++;
     boton.classList.add('correct');
   } else {
+    state.desafio.errores++;
     state.desafio.racha = 0;
     boton.classList.add('incorrect');
   }
   setTimeout(() => {
     state.desafio.pregunta = generarPreguntaDesafio();
+    state.desafio.tiempoInicio = Date.now();
     renderizar();
   }, 300);
 }
 
 function renderizarProgreso() {
   const usuario = getUsuarioActual();
-  const tiempoPromedio = calcularTiempoPromedio(usuario);
-  const escala = calcularEscala(tiempoPromedio);
+  const escala = calcularEscala(usuario);
   return `
     <div class="screen active" id="progresoScreen">
       <h2><span class="section-icon">📊</span> Progreso</h2>
@@ -412,13 +445,33 @@ function calcularTiempoPromedio(usuario) {
   return todos.length === 0 ? 3 : todos.reduce((a, b) => a + b, 0) / todos.length;
 }
 
-function calcularEscala(promedio) {
-  return { rapido: Math.max(1, promedio - 1).toFixed(1), normal: promedio.toFixed(1) };
+function calcularEscala(usuario) {
+  let todos = [];
+  Object.values(usuario.tiemposRespuesta).forEach(t => todos = todos.concat(t));
+  
+  if (todos.length < 3) {
+    return { rapido: 2, normal: 3, lento: 5 };
+  }
+  
+  todos.sort((a, b) => a - b);
+  const min = todos[0];
+  const max = todos[todos.length - 1];
+  
+  if (max - min < 2) {
+    return { rapido: min, normal: (min + max) / 2, lento: max };
+  }
+  
+  const rapido = todos[Math.floor(todos.length * 0.33)];
+  const normal = todos[Math.floor(todos.length * 0.66)];
+  const lento = max;
+  
+  return { rapido: parseFloat(rapido.toFixed(1)), normal: parseFloat(normal.toFixed(1)), lento: parseFloat(lento.toFixed(1)) };
 }
 
 function renderizarMapaColores(escala, usuario) {
-  const rap = parseFloat(escala.rapido);
-  const norm = parseFloat(escala.normal);
+  const rap = escala.rapido;
+  const norm = escala.normal;
+  const len = escala.lento;
   let html = '<div class="tablas-grid">';
   for (let t = 1; t <= 12; t++) {
     html += `<div class="tabla-fila"><div class="tabla-numero">×${t}</div><div class="tabla-celdas">`;
@@ -428,8 +481,8 @@ function renderizarMapaColores(escala, usuario) {
       const promedio = tiempos.length > 0 ? tiempos.reduce((a, b) => a + b, 0) / tiempos.length : -1;
       let color = 'rgba(55, 65, 81, 0.4)';
       if (tiempos.length > 0) {
-        if (promedio < rap) color = '#10B981';
-        else if (promedio <= norm + 1) color = '#F59E0B';
+        if (promedio <= rap) color = '#10B981';
+        else if (promedio <= norm) color = '#F59E0B';
         else color = '#EF4444';
       }
       html += `<div class="tabla-celda" style="background-color: ${color}; color: ${color === '#F59E0B' ? '#0F0F1A' : 'white'};" title="${t} × ${i} = ${t*i}">${t*i}</div>`;
@@ -439,11 +492,10 @@ function renderizarMapaColores(escala, usuario) {
   html += '</div>';
   html += `<div class="leyenda-tiempo">
     <span class="leyenda-item"><span class="leyenda-color" style="background:#10B981"></span> &lt;${rap}s</span>
-    <span class="leyenda-item"><span class="leyenda-color" style="background:#F59E0B"></span> ±${norm}s</span>
-    <span class="leyenda-item"><span class="leyenda-color" style="background:#EF4444"></span> >${norm}s</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:#F59E0B"></span> ${rap}s-${norm}s</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:#EF4444"></span> &gt;${norm}s</span>
   </div>`;
   return html;
 }
-
-document.addEventListener('DOMContentLoaded', init);
+      document.addEventListener('DOMContentLoaded', init);
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
