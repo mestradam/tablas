@@ -6,12 +6,20 @@ const ICONOS_USUARIO = {
   hombre: '👦'
 };
 
+const TEMAS = [
+  { nombre: 'oscuro', icono: '🌙' },
+  { nombre: 'mar', icono: '🌊' },
+  { nombre: 'floral', icono: '🌸' },
+  { nombre: 'minimal', icono: '⬛' }
+];
+
 let usuarioActual = 'Alicia';
+let temaActual = 0;
 let state = {
   tabActual: 'practicar',
   usuarios: {
-    Alicia: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' },
-    Lucía: { tiemposRespuesta: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' }
+    Alicia: { tiemposRespuesta: {}, errores: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' },
+    Lucía: { tiemposRespuesta: {}, errores: {}, statsDiarias: [], tiempoTotalPractica: 0, genero: 'mujer' }
   },
   cuestionario: {
     preguntas: [],
@@ -37,12 +45,29 @@ function getUsuarioActual() {
   return state.usuarios[usuarioActual];
 }
 
+function aplicarTema() {
+  document.documentElement.setAttribute('data-tema', TEMAS[temaActual].nombre);
+  const btn = document.getElementById('temaBtn');
+  if (btn) btn.textContent = TEMAS[temaActual].icono;
+}
+
+function cambiarTema() {
+  temaActual = (temaActual + 1) % TEMAS.length;
+  aplicarTema();
+  guardarEstado();
+}
+
+window.cambiarTema = cambiarTema;
+
 function init() {
   cargarEstado();
+  aplicarTema();
   configurarEventos();
   actualizarHeader();
   renderizar();
 }
+
+const VERSION_ESTADO = 3;
 
 function cargarEstado() {
   const guardado = localStorage.getItem('tablas_estado');
@@ -58,13 +83,31 @@ function cargarEstado() {
     if (estadoGuardado.usuarioActual) {
       usuarioActual = estadoGuardado.usuarioActual;
     }
+    if (estadoGuardado.tema !== undefined) {
+      temaActual = estadoGuardado.tema;
+    }
+    migrateIfNeeded(estadoGuardado.version || 1);
   }
+}
+
+function migrateIfNeeded(oldVersion) {
+  if (oldVersion >= VERSION_ESTADO) return;
+  
+  Object.values(state.usuarios).forEach(usuario => {
+    if (usuario.errores === undefined) {
+      usuario.errores = {};
+    }
+  });
+  
+  guardarEstado();
 }
 
 function guardarEstado() {
   localStorage.setItem('tablas_estado', JSON.stringify({
+    version: VERSION_ESTADO,
     usuarios: state.usuarios,
-    usuarioActual: usuarioActual
+    usuarioActual: usuarioActual,
+    tema: temaActual
   }));
 }
 
@@ -190,6 +233,7 @@ function crearNuevoUsuario() {
   
   state.usuarios[nombre] = {
     tiemposRespuesta: {},
+    errores: {},
     statsDiarias: [],
     tiempoTotalPractica: 0,
     genero: genero
@@ -320,7 +364,7 @@ function responder(boton) {
   const p = state.cuestionario.preguntas[state.cuestionario.indice];
   const correcta = parseInt(boton.dataset.op) === p.resultado;
   const tiempo = (Date.now() - state.cuestionario.tiempoInicio) / 1000;
-  registrarTiempo(p.pregunta, tiempo);
+  registrarTiempo(p.pregunta, tiempo, correcta);
   
   document.querySelectorAll('.quiz-option').forEach(b => {
     b.classList.add('disabled');
@@ -339,7 +383,7 @@ function responder(boton) {
   setTimeout(renderizarQuizPracticar, 500);
 }
 
-function registrarTiempo(preg, tiempo) {
+function registrarTiempo(preg, tiempo, correcta) {
   const usuario = getUsuarioActual();
   const partes = preg.replace('×', 'x').split(/[x\s]+/).filter(p => p);
   const a = parseInt(partes[0]);
@@ -349,6 +393,13 @@ function registrarTiempo(preg, tiempo) {
   usuario.tiemposRespuesta[key].push(tiempo);
   if (usuario.tiemposRespuesta[key].length > 3) {
     usuario.tiemposRespuesta[key] = usuario.tiemposRespuesta[key].slice(-3);
+  }
+  if (!correcta) {
+    if (!usuario.errores[key]) usuario.errores[key] = [];
+    usuario.errores[key].push(1);
+    if (usuario.errores[key].length > 2) {
+      usuario.errores[key] = usuario.errores[key].slice(-2);
+    }
   }
   guardarEstado();
 }
@@ -478,7 +529,7 @@ function responderDesafio(boton) {
   const p = state.desafio.pregunta;
   const correcta = parseInt(boton.dataset.op) === p.resultado;
   const tiempo = (Date.now() - state.desafio.tiempoInicio) / 1_000;
-  registrarTiempo(p.pregunta, tiempo);
+  registrarTiempo(p.pregunta, tiempo, correcta);
 
   if (correcta) {
     state.desafio.aciertos++;
@@ -537,31 +588,36 @@ function calcularEscala(usuario) {
 }
 
 function renderizarMapaColores(escala, usuario) {
-  const rap = escala.rapido;
-  const norm = escala.normal;
-  const len = escala.lento;
   let html = '<div class="tablas-grid">';
   for (let t = 1; t <= 12; t++) {
     html += `<div class="tabla-fila"><div class="tabla-numero">×${t}</div><div class="tabla-celdas">`;
     for (let i = 1; i <= 12; i++) {
       const key = `${t}x${i}`;
       const tiempos = usuario.tiemposRespuesta[key] || [];
+      const errores = usuario.errores[key] || [];
+      const tieneErrores = errores.length > 0;
       const promedio = tiempos.length > 0 ? tiempos.reduce((a, b) => a + b, 0) / tiempos.length : -1;
       let color = 'rgba(55, 65, 81, 0.4)';
-      if (tiempos.length > 0) {
-        if (promedio <= rap) color = '#10B981';
-        else if (promedio <= norm) color = '#F59E0B';
-        else color = '#EF4444';
+      if (tiempos.length > 0 || errores.length > 0) {
+        if (tieneErrores) {
+          color = '#EF4444';
+        } else if (promedio > 3) {
+          color = '#F59E0B';
+        } else {
+          color = '#10B981';
+        }
       }
-      html += `<div class="tabla-celda" style="background-color: ${color}; color: ${color === '#F59E0B' ? '#0F0F1A' : 'white'};" title="${t} × ${i} = ${t*i}">${t*i}</div>`;
+      const textoColor = color === '#F59E0B' ? '#0F0F1A' : 'white';
+      html += `<div class="tabla-celda" style="background-color: ${color}; color: ${textoColor};" title="${t} × ${i} = ${t*i}${tieneErrores ? ' (con errores)' : promedio > 3 ? ' (lento)' : ' (rápido)'}">${t*i}</div>`;
     }
     html += '</div></div>';
   }
   html += '</div>';
   html += `<div class="leyenda-tiempo">
-    <span class="leyenda-item"><span class="leyenda-color" style="background:#10B981"></span> &lt;${rap}s</span>
-    <span class="leyenda-item"><span class="leyenda-color" style="background:#F59E0B"></span> ${rap}s-${norm}s</span>
-    <span class="leyenda-item"><span class="leyenda-color" style="background:#EF4444"></span> &gt;${norm}s</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:#10B981"></span> &lt;3s</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:#F59E0B"></span> &gt;3s</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:#EF4444"></span> con errores</span>
+    <span class="leyenda-item"><span class="leyenda-color" style="background:rgba(55,65,81,0.4)"></span> sin datos</span>
   </div>`;
   return html;
 }
