@@ -44,6 +44,8 @@ function init() {
   renderizar();
 }
 
+const VERSION_ESTADO = 2;
+
 function cargarEstado() {
   const guardado = localStorage.getItem('tablas_estado');
   if (guardado) {
@@ -58,11 +60,25 @@ function cargarEstado() {
     if (estadoGuardado.usuarioActual) {
       usuarioActual = estadoGuardado.usuarioActual;
     }
+    migrateIfNeeded(estadoGuardado.version || 1);
   }
+}
+
+function migrateIfNeeded(oldVersion) {
+  if (oldVersion >= VERSION_ESTADO) return;
+  
+  Object.values(state.usuarios).forEach(usuario => {
+    if (usuario.errores === undefined) {
+      usuario.errores = {};
+    }
+  });
+  
+  guardarEstado();
 }
 
 function guardarEstado() {
   localStorage.setItem('tablas_estado', JSON.stringify({
+    version: VERSION_ESTADO,
     usuarios: state.usuarios,
     usuarioActual: usuarioActual
   }));
