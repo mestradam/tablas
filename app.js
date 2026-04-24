@@ -375,7 +375,6 @@ function renderizarResultados() {
       <h3>¡Resultados!</h3>
       <div class="results-score">${q.aciertos}/${q.preguntas.length}</div>
       <div class="results-stars">${'⭐'.repeat(estrellas)}</div>
-      <div class="results-stat"><div class="results-stat-value">${Math.round(precision * 100)}%</div><div class="results-stat-label">Precisión</div></div>
       <button class="btn" onclick="renderizar()">Volver</button>
     </div>
   `;
