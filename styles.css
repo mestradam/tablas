@@ -706,3 +706,78 @@ h3 {
 .btn-cancelar:hover {
   background: var(--surface);
 }
+
+/* Tema: Mar */
+[data-tema="mar"] {
+  --primary: #06B6D4;
+  --primary-light: #22D3EE;
+  --secondary: #0EA5E9;
+  --accent: #14B8A6;
+  --warning: #F59E0B;
+  --background: #0C1929;
+  --surface: #0F2744;
+  --surface-elevated: #153257;
+  --surface-light: #1E4570;
+  --text-primary: #F0F9FF;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --success: #14B8A6;
+  --error: #F87171;
+}
+
+/* Tema: Floral */
+[data-tema="floral"] {
+  --primary: #EC4899;
+  --primary-light: #F472B6;
+  --secondary: #8B5CF6;
+  --accent: #10B981;
+  --warning: #FBBF24;
+  --background: #1C1417;
+  --surface: #2D1F25;
+  --surface-elevated: #3D2A33;
+  --surface-light: #4E3641;
+  --text-primary: #FDF4FF;
+  --text-secondary: #D8B4E2;
+  --text-muted: #A78BBA;
+  --success: #34D399;
+  --error: #F87171;
+}
+
+/* Tema: Minimal */
+[data-tema="minimal"] {
+  --primary: #374151;
+  --primary-light: #4B5563;
+  --secondary: #1F2937;
+  --accent: #6B7280;
+  --warning: #9CA3AF;
+  --background: #FAFAFA;
+  --surface: #F3F4F6;
+  --surface-elevated: #E5E7EB;
+  --surface-light: #D1D5DB;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --success: #059669;
+  --error: #DC2626;
+}
+
+/* Botón de tema */
+.tema-btn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.tema-btn:hover {
+  background: var(--surface);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

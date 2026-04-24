@@ -6,7 +6,15 @@ const ICONOS_USUARIO = {
   hombre: '👦'
 };
 
+const TEMAS = [
+  { nombre: 'oscuro', icono: '🌙' },
+  { nombre: 'mar', icono: '🌊' },
+  { nombre: 'floral', icono: '🌸' },
+  { nombre: 'minimal', icono: '⬛' }
+];
+
 let usuarioActual = 'Alicia';
+let temaActual = 0;
 let state = {
   tabActual: 'practicar',
   usuarios: {
@@ -37,14 +45,29 @@ function getUsuarioActual() {
   return state.usuarios[usuarioActual];
 }
 
+function aplicarTema() {
+  document.documentElement.setAttribute('data-tema', TEMAS[temaActual].nombre);
+  const btn = document.getElementById('temaBtn');
+  if (btn) btn.textContent = TEMAS[temaActual].icono;
+}
+
+function cambiarTema() {
+  temaActual = (temaActual + 1) % TEMAS.length;
+  aplicarTema();
+  guardarEstado();
+}
+
+window.cambiarTema = cambiarTema;
+
 function init() {
   cargarEstado();
+  aplicarTema();
   configurarEventos();
   actualizarHeader();
   renderizar();
 }
 
-const VERSION_ESTADO = 2;
+const VERSION_ESTADO = 3;
 
 function cargarEstado() {
   const guardado = localStorage.getItem('tablas_estado');
@@ -59,6 +82,9 @@ function cargarEstado() {
     }
     if (estadoGuardado.usuarioActual) {
       usuarioActual = estadoGuardado.usuarioActual;
+    }
+    if (estadoGuardado.tema !== undefined) {
+      temaActual = estadoGuardado.tema;
     }
     migrateIfNeeded(estadoGuardado.version || 1);
   }
@@ -80,7 +106,8 @@ function guardarEstado() {
   localStorage.setItem('tablas_estado', JSON.stringify({
     version: VERSION_ESTADO,
     usuarios: state.usuarios,
-    usuarioActual: usuarioActual
+    usuarioActual: usuarioActual,
+    tema: temaActual
   }));
 }
 
